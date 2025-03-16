@@ -4,6 +4,7 @@ import com.example.botSamolet.commands.*
 import com.example.botSamolet.models.HandlerName
 import com.example.botSamolet.repositories.FavoritesRepository
 import com.example.botSamolet.repositories.HouseRepository
+import com.example.botSamolet.services.HouseService
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
@@ -20,6 +21,7 @@ import java.util.*
 
 @Component
 class AnswerHandler(
+    private val houseService: HouseService,
     private val housesRep: HouseRepository,
     private val favoritesRep: FavoritesRepository,
     private val menu: MenuCommand,
@@ -114,19 +116,21 @@ class AnswerHandler(
             }
 
             //выбран дом
-            val house = housesRep.getHouse(arguments.first().toInt()).collectList().block()
+            val house = houseService.fetchHouse(arguments.first().toInt())
+            val houseHistory = houseService.fetchHouses("","","")
+            //val house = housesRep.getHouse(arguments.first().toInt()).collectList().block()
 
-            var answer = "${house?.last()?.article}\n" +
-                    "${house?.last()?.type} (${house?.last()?.land_area} соток, ${house?.last()?.area} кв.м.)\n" +
-                    "${house?.last()?.technology}\n" +
-                    "Цена земли ${house?.last()?.land_price} рублей\n" +
-                    "Дата сдачи ${house?.last()?.completion_date}\n" +
-                    "Цена ${house?.last()?.price} рублей\n\n"
+            var answer = "${house.article}\n" +
+                    "${house.type} (${house.land_area} соток, ${house.area} кв.м.)\n" +
+                    "${house.technology}\n" +
+                    "Цена земли ${house.land_price} рублей\n" +
+                    "Дата сдачи ${house.completion_date}\n" +
+                    "Цена ${house.price} рублей\n\n"
 
             var price = 0
             var direct = ""
             answer += "История цен:\n"
-            house?.forEach {
+            houseHistory.forEach {
                 if (price < it.price) {
                     direct = "⬆\uFE0F"
                 } else if (price > it.price) {
@@ -143,17 +147,17 @@ class AnswerHandler(
                 }
             }
 
-            answer += "\n${house?.last()?.url}"
+            answer += "\n${house.url}"
 
             absSender.execute(DeleteMessage(chatId, messageId.toInt()))
 
             val sendPhoto = SendPhoto()
             sendPhoto.chatId = chatId
             sendPhoto.caption = answer
-            sendPhoto.setPhoto(InputFile(house?.first()?.image))
+            sendPhoto.setPhoto(InputFile(house.image))
             val sentMessageId = absSender.execute(sendPhoto).messageId
 
-            val fav = favoritesRep.select(callbackQuery.from.id, house?.last()?.id)
+            val fav = favoritesRep.select(callbackQuery.from.id, house.id)
                 .collectList().block()
             if (fav?.isNotEmpty() == true) {
                 updateInlineButtons(absSender, chatId.toLong(), sentMessageId, arguments.first().toInt()

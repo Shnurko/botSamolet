@@ -12,7 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.User
 import org.telegram.telegrambots.meta.bots.AbsSender
 
 @Component
-class TypeCommand(private val houseRep: HouseRepository,
+class TypeCommand(//private val houseRep: HouseRepository,
                   private val houseService: HouseService
 ) : BotCommand(CommandName.TYPE.text, "") {
     override fun execute(absSender: AbsSender, user: User, chat: Chat, arguments: Array<out String>) {
