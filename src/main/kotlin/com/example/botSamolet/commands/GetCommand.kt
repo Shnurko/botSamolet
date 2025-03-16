@@ -2,8 +2,6 @@ package com.example.botSamolet.commands
 
 import com.example.botSamolet.models.CommandName
 import com.example.botSamolet.models.HandlerName
-import com.example.botSamolet.models.House
-import com.example.botSamolet.repositories.HouseRepository
 import com.example.botSamolet.services.HouseService
 import com.example.botSamolet.utils.createMessageWithInlineButtons
 import org.springframework.stereotype.Component
@@ -13,7 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.User
 import org.telegram.telegrambots.meta.bots.AbsSender
 
 @Component
-class GetCommand(private val houseRep: HouseRepository,
+class GetCommand(//private val houseRep: HouseRepository,
                  private val houseService: HouseService) : BotCommand(CommandName.GET.text, "") {
     override fun execute(absSender: AbsSender, user: User, chat: Chat, arguments: Array<out String>) {
         var all = "Все"
@@ -23,24 +21,23 @@ class GetCommand(private val houseRep: HouseRepository,
 
         val callback = HandlerName.BOT_ANSWER.text
 
-        val test = houseService.fetchHouses()
-
         var inlineButtons: List<List<Pair<String, String>>> = listOf(listOf())
 
         if (arguments[3] != "*"){
             arguments.drop(3).forEach {
-                val house = houseRep.getHouse(it.toInt()).collectList().block()?.last()
+                val house = houseService.fetchHouse(it.toInt())
+                //val house = houseRep.getHouse(it.toInt()).collectList().block()?.last()
                 inlineButtons += listOf(listOf("$callback|${house?.id}" to "\uD83C\uDFE0 ${house?.id} дом ${house?.article} ${house?.price} рублей"))
             }
         } else {
-
-            var houses =
-                houseRep.getHouses(type = arguments[2], article = arguments[0], technology = "%")
-                    .collectList()
-                    .block()
+            var houses = houseService.fetchHouses(type = arguments[2], article = arguments[0], technology = "%")
+            //var houses =
+            //    houseRep.getHouses(type = arguments[2], article = arguments[0], technology = "%")
+            //        .collectList()
+            //        .block()
 
             if (arguments[1].toInt() != 0) {
-                houses = houses?.filter { it.status == arguments[1].toInt() }
+                houses = houses.filter { it.status == arguments[1].toInt() }
             }
 
             when (arguments[1].toInt()) {
@@ -58,7 +55,7 @@ class GetCommand(private val houseRep: HouseRepository,
                 )
             )
 
-            houses?.forEach {
+            houses.forEach {
                 inlineButtons += listOf(listOf("$callback|${it.id}" to "\uD83C\uDFE0 ${it.id} дом ${it.article} ${it.price} рублей"))
             }
 

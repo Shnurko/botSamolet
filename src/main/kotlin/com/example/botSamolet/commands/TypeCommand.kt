@@ -3,6 +3,7 @@ package com.example.botSamolet.commands
 import com.example.botSamolet.models.CommandName
 import com.example.botSamolet.models.HandlerName
 import com.example.botSamolet.repositories.HouseRepository
+import com.example.botSamolet.services.HouseService
 import com.example.botSamolet.utils.createMessageWithInlineButtons
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand
@@ -11,7 +12,9 @@ import org.telegram.telegrambots.meta.api.objects.User
 import org.telegram.telegrambots.meta.bots.AbsSender
 
 @Component
-class TypeCommand(private val houseRep: HouseRepository) : BotCommand(CommandName.TYPE.text, "") {
+class TypeCommand(private val houseRep: HouseRepository,
+                  private val houseService: HouseService
+) : BotCommand(CommandName.TYPE.text, "") {
     override fun execute(absSender: AbsSender, user: User, chat: Chat, arguments: Array<out String>) {
 
         var text = ""
@@ -20,17 +23,18 @@ class TypeCommand(private val houseRep: HouseRepository) : BotCommand(CommandNam
 
         var inlineButtons: List<List<Pair<String, String>>> = listOf(listOf())
 
-        var types = houseRep.getTypes(article = arguments[0]).collectList().block()
+        //val types = houseRep.getTypes(article = arguments[0]).collectList().block()
+        val types = houseService.fetchTypes(article = arguments[0])
 
-        types?.forEach {
-            var new = it
-            if (it == "Вилла Без комплектации"){
+        types.forEach {
+            var new = it.type
+            if (it.type == "Вилла Без комплектации"){
                 return@forEach
             }
-            if (it == "Вилла ㅤ"){
+            if (it.type == "Вилла ㅤ"){
                 new = "Вилла%"
             }
-            inlineButtons += listOf(listOf("$callback|${arguments[0]}/0/${new}/*" to it))
+            inlineButtons += listOf(listOf("$callback|${arguments[0]}/0/${new}/*" to it.type.toString()))
         }
 
         inlineButtons += listOf(listOf("$callback|menu" to "<< назад"))
