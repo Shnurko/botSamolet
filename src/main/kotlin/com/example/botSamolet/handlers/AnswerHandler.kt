@@ -117,7 +117,7 @@ class AnswerHandler(
 
             //выбран дом
             val house = houseService.fetchHouse(arguments.first().toInt())
-            val houseHistory = houseService.fetchHouses("","","")
+            val houseHistory = houseService.fetchHouseHistory(arguments.first().toInt())
             //val house = housesRep.getHouse(arguments.first().toInt()).collectList().block()
 
             var answer = "${house.article}\n" +
