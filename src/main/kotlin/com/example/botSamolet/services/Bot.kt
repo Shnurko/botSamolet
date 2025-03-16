@@ -26,7 +26,7 @@ class Bot(
         handlerMapping = callbackHandlers.associateBy { it.name.text }
     }
 
-    override fun getBotUsername(): String = ""
+    override fun getBotUsername(): String = "\${telegram.bot_name}"
 
     override fun processNonCommandUpdate(update: Update) {
         if (update.hasMessage()) {

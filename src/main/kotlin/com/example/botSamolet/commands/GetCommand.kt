@@ -2,7 +2,9 @@ package com.example.botSamolet.commands
 
 import com.example.botSamolet.models.CommandName
 import com.example.botSamolet.models.HandlerName
+import com.example.botSamolet.models.House
 import com.example.botSamolet.repositories.HouseRepository
+import com.example.botSamolet.services.HouseService
 import com.example.botSamolet.utils.createMessageWithInlineButtons
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand
@@ -11,7 +13,8 @@ import org.telegram.telegrambots.meta.api.objects.User
 import org.telegram.telegrambots.meta.bots.AbsSender
 
 @Component
-class GetCommand(private val houseRep: HouseRepository) : BotCommand(CommandName.GET.text, "") {
+class GetCommand(private val houseRep: HouseRepository,
+                 private val houseService: HouseService) : BotCommand(CommandName.GET.text, "") {
     override fun execute(absSender: AbsSender, user: User, chat: Chat, arguments: Array<out String>) {
         var all = "Все"
         var avail = "В продаже"
@@ -19,6 +22,8 @@ class GetCommand(private val houseRep: HouseRepository) : BotCommand(CommandName
         var text = ""
 
         val callback = HandlerName.BOT_ANSWER.text
+
+        val test = houseService.fetchHouses()
 
         var inlineButtons: List<List<Pair<String, String>>> = listOf(listOf())
 
