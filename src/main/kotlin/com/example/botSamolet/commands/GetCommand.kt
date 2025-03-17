@@ -11,8 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.User
 import org.telegram.telegrambots.meta.bots.AbsSender
 
 @Component
-class GetCommand(//private val houseRep: HouseRepository,
-                 private val houseService: HouseService) : BotCommand(CommandName.GET.text, "") {
+class GetCommand(private val houseService: HouseService) : BotCommand(CommandName.GET.text, "") {
     override fun execute(absSender: AbsSender, user: User, chat: Chat, arguments: Array<out String>) {
         var all = "Все"
         var avail = "В продаже"
@@ -26,15 +25,10 @@ class GetCommand(//private val houseRep: HouseRepository,
         if (arguments[3] != "*"){
             arguments.drop(3).forEach {
                 val house = houseService.fetchHouse(it.toInt())
-                //val house = houseRep.getHouse(it.toInt()).collectList().block()?.last()
                 inlineButtons += listOf(listOf("$callback|${house?.id}" to "\uD83C\uDFE0 ${house?.id} дом ${house?.article} ${house?.price} рублей"))
             }
         } else {
             var houses = houseService.fetchHouses(type = arguments[2], article = arguments[0], technology = "%")
-            //var houses =
-            //    houseRep.getHouses(type = arguments[2], article = arguments[0], technology = "%")
-            //        .collectList()
-            //        .block()
 
             if (arguments[1].toInt() != 0) {
                 houses = houses.filter { it.status == arguments[1].toInt() }
@@ -61,7 +55,11 @@ class GetCommand(//private val houseRep: HouseRepository,
 
         }
 
-        inlineButtons += listOf(listOf("$callback|${arguments[0]}/0/%/*" to "<< назад"))
+        if((arguments[0]) == "FAV"){
+            inlineButtons += listOf(listOf("$callback|menu" to "<< назад"))
+        } else {
+            inlineButtons += listOf(listOf("$callback|${arguments[0]}/0/%/*" to "<< назад"))
+        }
 
         when(arguments[0]){
             "ДМИ%" -> text = "Дмитров Дом"

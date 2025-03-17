@@ -1,7 +1,6 @@
 package com.example.botSamolet.services
 
 import com.example.botSamolet.handlers.CallbackHandler
-import com.example.botSamolet.repositories.HouseRepository
 import com.example.botSamolet.utils.createMessage
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -15,8 +14,7 @@ class Bot(
     commands: Set<BotCommand>,
     callbackHandlers: Set<CallbackHandler>,
     @Value("\${telegram.token}")
-    botToken: String,
-    private val houseRepository: HouseRepository
+    botToken: String
 ) : TelegramLongPollingCommandBot(botToken) {
 
     private lateinit var handlerMapping: Map<String, CallbackHandler>

@@ -1,16 +1,11 @@
 package com.example.botSamolet.utils
 
+import com.example.botSamolet.models.Favorites
 import com.example.botSamolet.models.House
+import com.example.botSamolet.models.Types
 import com.example.botSamolet.models.Users
 import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
+import org.springframework.web.bind.annotation.*
 
 @FeignClient(name = "houseClient", url = "\${gateway.api}")
 interface HouseClient {
@@ -24,15 +19,34 @@ interface HouseClient {
     @GetMapping("/{id}")
     fun getHouse(@PathVariable("id") id: Int): House
 
-    //@GetMapping("/types")//, consumes = [MediaType.APPLICATION_JSON_VALUE])
-    @GetMapping("/types")//, consumes = [MediaType.APPLICATION_JSON_VALUE], headers = ["Accept-Charset=UTF-8"])
+    @GetMapping("/types")
     fun getTypes(
         @RequestParam("article") article: String = "%"
-    ): List<House>
+    ): List<Types>
 
     @GetMapping("/{id}/history")
     fun getHouseHistory(@PathVariable("id") id: Int): List<House>
 
     @PostMapping("/user")
     fun saveUser(@RequestBody user: Users): Users
+
+    @GetMapping("/favorite")
+    fun getFavorite(
+        @RequestParam("userid") userid: Long?,
+        @RequestParam("id") id: Long?
+    ): Favorites
+
+    @DeleteMapping("/favorite")
+    fun deleteFavorite(
+        @RequestParam("userid") userid: Long?,
+        @RequestParam("id") id: Long?
+    ): Int
+
+    @PostMapping("/favorite")
+    fun saveFavorite(@RequestBody request: Favorites): Int
+
+    @GetMapping("/favorites")
+    fun getFavorites(
+        @RequestParam("userid") userid: Long?
+    ): List<Favorites>
 }

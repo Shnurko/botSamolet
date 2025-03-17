@@ -2,8 +2,6 @@ package com.example.botSamolet.handlers
 
 import com.example.botSamolet.commands.*
 import com.example.botSamolet.models.HandlerName
-import com.example.botSamolet.repositories.FavoritesRepository
-import com.example.botSamolet.repositories.HouseRepository
 import com.example.botSamolet.services.HouseService
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
@@ -22,8 +20,6 @@ import java.util.*
 @Component
 class AnswerHandler(
     private val houseService: HouseService,
-    private val housesRep: HouseRepository,
-    private val favoritesRep: FavoritesRepository,
     private val menu: MenuCommand,
     private val type: TypeCommand,
     private val get: GetCommand
@@ -57,28 +53,25 @@ class AnswerHandler(
             }
 
             if (arguments.first().contains("favorite")) {
-                val fav = favoritesRep.select(callbackQuery.from.id, arguments.first().split('/')[1].toInt())
-                    .collectList().block()
-                if (fav?.isNotEmpty() == true) {
-                    favoritesRep.delete(callbackQuery.from.id, arguments.first().split('/')[1].toInt()).subscribe()
+                val fav = houseService.getFavorite(callbackQuery.from.id, arguments.first().split('/')[1].toLong())
+                if (fav != null) {
+                    houseService.deleteFavorite(callbackQuery.from.id, arguments.first().split('/')[1].toInt().toLong())
                     updateInlineButtons(absSender, chatId.toLong(), messageId.toInt(), arguments.first().split('/')[1].toInt()
                         , "⭐Добавить в избранное")
                     return
                 }
 
-                //val callback = HandlerName.BOT_ANSWER.text
-
-                favoritesRep.insert(callbackQuery.from.id, arguments.first().split('/')[1].toInt()).subscribe()
+                houseService.saveFavorite(callbackQuery.from.id, arguments.first().split('/')[1].toLong())
                 updateInlineButtons(absSender, chatId.toLong(), messageId.toInt(), arguments.first().split('/')[1].toInt()
                     , "⭐Убрать из избранного")
                 return
             }
 
-            if (arguments.first() == "myfav") {
-                val fav = favoritesRep.selectall(callbackQuery.from.id).collectList().block()
-                if (fav?.isNotEmpty() == true) {
+            if (arguments.first().contains("FAV")) {
+                val fav = houseService.getFavorites(callbackQuery.from.id)
+                if (fav.isNotEmpty()) {
                     absSender.execute(DeleteMessage(chatId, messageId.toInt()))
-                    val newarg = mutableListOf("FAV", "*")
+                    val newarg = mutableListOf("FAV", "%", "%")
                     fav.forEach {
                         newarg += it.id.toString()
                     }
@@ -118,7 +111,6 @@ class AnswerHandler(
             //выбран дом
             val house = houseService.fetchHouse(arguments.first().toInt())
             val houseHistory = houseService.fetchHouseHistory(arguments.first().toInt())
-            //val house = housesRep.getHouse(arguments.first().toInt()).collectList().block()
 
             var answer = "${house.article}\n" +
                     "${house.type} (${house.land_area} соток, ${house.area} кв.м.)\n" +
@@ -157,9 +149,8 @@ class AnswerHandler(
             sendPhoto.setPhoto(InputFile(house.image))
             val sentMessageId = absSender.execute(sendPhoto).messageId
 
-            val fav = favoritesRep.select(callbackQuery.from.id, house.id)
-                .collectList().block()
-            if (fav?.isNotEmpty() == true) {
+            val fav = houseService.getFavorite(callbackQuery.from.id, house.id!!.toLong())
+            if (fav != null) {
                 updateInlineButtons(absSender, chatId.toLong(), sentMessageId, arguments.first().toInt()
                     , "⭐Убрать из избранного")
             } else {

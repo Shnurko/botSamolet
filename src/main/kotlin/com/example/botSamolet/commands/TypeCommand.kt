@@ -2,7 +2,6 @@ package com.example.botSamolet.commands
 
 import com.example.botSamolet.models.CommandName
 import com.example.botSamolet.models.HandlerName
-import com.example.botSamolet.repositories.HouseRepository
 import com.example.botSamolet.services.HouseService
 import com.example.botSamolet.utils.createMessageWithInlineButtons
 import org.springframework.stereotype.Component
@@ -12,9 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.User
 import org.telegram.telegrambots.meta.bots.AbsSender
 
 @Component
-class TypeCommand(//private val houseRep: HouseRepository,
-                  private val houseService: HouseService
-) : BotCommand(CommandName.TYPE.text, "") {
+class TypeCommand(private val houseService: HouseService) : BotCommand(CommandName.TYPE.text, "") {
     override fun execute(absSender: AbsSender, user: User, chat: Chat, arguments: Array<out String>) {
 
         var text = ""
@@ -23,7 +20,6 @@ class TypeCommand(//private val houseRep: HouseRepository,
 
         var inlineButtons: List<List<Pair<String, String>>> = listOf(listOf())
 
-        //val types = houseRep.getTypes(article = arguments[0]).collectList().block()
         val types = houseService.fetchTypes(article = arguments[0])
 
         types.forEach {
